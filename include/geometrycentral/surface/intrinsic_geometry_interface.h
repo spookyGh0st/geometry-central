@@ -30,6 +30,10 @@ public:
   void requireEdgeLengths();
   void unrequireEdgeLengths();
 
+  EdgeData<double> dualEdgeLengths;
+  void requireDualEdgeLengths();
+  void unrequireDualEdgeLengths();
+
   // Face areas
   FaceData<double> faceAreas;
   void requireFaceAreas();
@@ -159,11 +163,13 @@ public:
   void unrequireCrouzeixRaviartConnectionLaplacian();
 
   // DEC Operators
-  Eigen::SparseMatrix<double> hodge0, hodge0Inverse, hodge1, hodge1Inverse, hodge2, hodge2Inverse, d0, d1;
+  Eigen::SparseMatrix<double> hodge0, hodge0Inverse, hodge1, hodge1Inverse, hodge2, hodge2Inverse, d0, d1, L1;
   void requireDECOperators();
   void unrequireDECOperators();
 
 protected:
+  double trilinear_coordinate(Halfedge halfedge);
+
   // == Lengths, areas, and angles
 
   // Edge lengths
@@ -171,6 +177,9 @@ protected:
   // method for computing edge lengths (EdgeLengthGeometry serves this purpose)
   DependentQuantityD<EdgeData<double>> edgeLengthsQ;
   virtual void computeEdgeLengths() = 0;
+
+  DependentQuantityD<EdgeData<double>> dualEdgeLengthsQ;
+  virtual void computeDualEdgeLengths();
 
   // Face areas
   DependentQuantityD<FaceData<double>> faceAreasQ;

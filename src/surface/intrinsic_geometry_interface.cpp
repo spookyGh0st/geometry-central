@@ -13,6 +13,7 @@ IntrinsicGeometryInterface::IntrinsicGeometryInterface(SurfaceMesh& mesh_) :
   BaseGeometryInterface(mesh_), 
 
   edgeLengthsQ              (&edgeLengths,                  std::bind(&IntrinsicGeometryInterface::computeEdgeLengths, this),               quantities),
+  dualEdgeLengthsQ          (&dualEdgeLengths,              std::bind(&IntrinsicGeometryInterface::computeDualEdgeLengths, this),               quantities),
   faceAreasQ                (&faceAreas,                    std::bind(&IntrinsicGeometryInterface::computeFaceAreas, this),                 quantities),
   vertexDualAreasQ          (&vertexDualAreas,              std::bind(&IntrinsicGeometryInterface::computeVertexDualAreas, this),           quantities),
   cornerAnglesQ             (&cornerAngles,                 std::bind(&IntrinsicGeometryInterface::computeCornerAngles, this),              quantities),
@@ -46,6 +47,14 @@ IntrinsicGeometryInterface::IntrinsicGeometryInterface(SurfaceMesh& mesh_) :
 
 
   { }
+
+double IntrinsicGeometryInterface::trilinear_coordinate(Halfedge halfedge)
+{
+  double a = edgeLengths[halfedge.edge()], b = edgeLengths[halfedge.next().next().edge()], c = edgeLengths[halfedge.next().edge()];
+  return a * ( b*b +c*c -a*a);
+}
+
+
 // clang-format on
 
 // === Quantity implementations
@@ -53,6 +62,25 @@ IntrinsicGeometryInterface::IntrinsicGeometryInterface(SurfaceMesh& mesh_) :
 // Edge lengths
 void IntrinsicGeometryInterface::requireEdgeLengths() { edgeLengthsQ.require(); }
 void IntrinsicGeometryInterface::unrequireEdgeLengths() { edgeLengthsQ.unrequire(); }
+
+void IntrinsicGeometryInterface::requireDualEdgeLengths() { dualEdgeLengthsQ.require(); }
+void IntrinsicGeometryInterface::unrequireDualEdgeLengths() { dualEdgeLengthsQ.unrequire(); }
+
+void IntrinsicGeometryInterface::computeDualEdgeLengths() {
+  edgeLengthsQ.ensureHave();
+  requireFaceAreas();
+  dualEdgeLengths = EdgeData<double>(mesh,0);
+  for (Edge e: mesh.edges()) {
+    if (e.isBoundary()) continue;
+    for (Halfedge he: e.adjacentHalfedges()) {
+      double alpha = trilinear_coordinate(he);
+      double beta = trilinear_coordinate(he.prevOrbitFace());
+      double gamma = trilinear_coordinate(he.next());
+      dualEdgeLengths[e] = (2*faceAreas[he.face()]  / edgeLengths[e]) * (alpha / (alpha + beta + gamma));
+    }
+  }
+  unrequireFaceAreas();
+}
 
 void IntrinsicGeometryInterface::computeFaceAreas() {
   edgeLengthsQ.ensureHave();
@@ -768,6 +796,11 @@ void IntrinsicGeometryInterface::computeDECOperators() {
     }
 
     d1.setFromTriplets(tripletList.begin(), tripletList.end());
+  }
+  { // L1
+    Eigen::SparseMatrix<double> codiff2 = hodge1Inverse * d1.transpose() * hodge2;
+    Eigen::SparseMatrix<double> codiff1 = hodge0Inverse * d0.transpose() * hodge1;
+    L1 = d0 * codiff1 + codiff2 * d1;
   }
 }
 void IntrinsicGeometryInterface::requireDECOperators() { DECOperatorsQ.require(); }
