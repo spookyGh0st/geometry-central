@@ -76,8 +76,9 @@ void IntrinsicGeometryInterface::computeDualEdgeLengths() {
       double alpha = trilinear_coordinate(he);
       double beta = trilinear_coordinate(he.prevOrbitFace());
       double gamma = trilinear_coordinate(he.next());
-      dualEdgeLengths[e] = (2*faceAreas[he.face()]  / edgeLengths[e]) * (alpha / (alpha + beta + gamma));
+      dualEdgeLengths[e] += (2*faceAreas[he.face()]  / edgeLengths[e]) * (alpha / (alpha + beta + gamma));
     }
+    dualEdgeLengths[e] = std::abs(dualEdgeLengths[e]);
   }
   unrequireFaceAreas();
 }
