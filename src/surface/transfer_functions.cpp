@@ -11,7 +11,10 @@ AttributeTransfer::AttributeTransfer(CommonSubdivision& cs_, VertexPositionGeome
   // === Prepare data
   P_A = cs.interpolationMatrixA();
   P_B = cs.interpolationMatrixB();
+  PF_A = cs.interpolationFaceMatrixA();
+  PF_B = cs.interpolationFaceMatrixB();
   M_CS_Galerkin = cs.vertexGalerkinMassMatrixFromPositionsA(geomA.vertexPositions);
+  M_CS_Lumped = cs.faceAreaMatrixFromLengthsB(geomA.edgeLengths);
 }
 
 AttributeTransfer::AttributeTransfer(IntrinsicTriangulation& intTri) : cs(intTri.getCommonSubdivision()) {
@@ -22,7 +25,10 @@ AttributeTransfer::AttributeTransfer(IntrinsicTriangulation& intTri) : cs(intTri
   // === Prepare data
   P_A = cs.interpolationMatrixA();
   P_B = cs.interpolationMatrixB();
+  PF_A = cs.interpolationFaceMatrixA();
+  PF_B = cs.interpolationFaceMatrixB();
   M_CS_Galerkin = cs.vertexGalerkinMassMatrixFromLengthsB(intTri.edgeLengths);
+  M_CS_Lumped = cs.faceAreaMatrixFromLengthsB(intTri.edgeLengths);
 }
 
 
@@ -79,6 +85,7 @@ VertexData<double> AttributeTransfer::transferAtoB_L2(const VertexData<double>& 
   return VertexData<double>(cs.meshB, result);
 }
 
+
 VertexData<double> AttributeTransfer::transferBtoA_Pointwise(const VertexData<double>& valuesOnB) {
 
   // TODO could implement this more simply using the intrinsic triangulation
@@ -110,6 +117,16 @@ std::pair<SparseMatrix<double>, SparseMatrix<double>> AttributeTransfer::constru
   return {lhs, rhs};
 }
 
+FaceData<double> AttributeTransfer::transferAtoB_L2(const FaceData<double>& valuesOnA) {
+  if (!AtoB_L2_Solver_F) {
+    SparseMatrix<double> mat = PF_B.transpose() * M_CS_Lumped * PF_B;
+    AtoB_L2_Solver_F = std::make_unique<SquareSolver<double>>(mat);
+  }
+  Vector<double> vec = PF_B.transpose() * M_CS_Lumped * PF_A * valuesOnA.toVector();
+  Vector<double> result = AtoB_L2_Solver_F->solve(vec);
+  return FaceData<double>(cs.meshB, result);
+}
+
 std::pair<SparseMatrix<double>, SparseMatrix<double>> AttributeTransfer::constructBtoAMatrices() const {
   SparseMatrix<double> lhs = P_A.transpose() * M_CS_Galerkin * P_A;
   SparseMatrix<double> rhs = P_A.transpose() * M_CS_Galerkin * P_B;
@@ -138,6 +155,12 @@ VertexData<double> transferBtoA(IntrinsicTriangulation& intTri, const VertexData
                                 TransferMethod method) {
   AttributeTransfer transfer(intTri);
   return transfer.transferBtoA(valuesOnB, method);
+}
+
+FaceData<double> transferAtoB_L2(IntrinsicTriangulation& intTri, const FaceData<double>& valuesOnA) {
+  AttributeTransfer transfer(intTri);
+  return transfer.transferAtoB_L2(valuesOnA);
+
 }
 
 } // namespace surface

@@ -29,10 +29,13 @@ public:
   SparseMatrix<double> P_A;           // maps scalars at vertices to CS
   SparseMatrix<double> P_B;           // maps scalars at vertices to CS
   SparseMatrix<double> M_CS_Galerkin; // galerkin mass matrix on common subdivision
+  SparseMatrix<double> PF_A, PF_B;    // maps scalars at faces to CS
+  SparseMatrix<double> M_CS_Lumped;   // lumped mass matrix at faces
 
   std::unique_ptr<SquareSolver<double>> AtoB_L2_Solver;
   std::unique_ptr<SquareSolver<double>> BtoA_L2_Solver;
 
+  std::unique_ptr<SquareSolver<double>> AtoB_L2_Solver_F;
 
   // Methods
 
@@ -43,6 +46,7 @@ public:
   // Low-level
   VertexData<double> transferAtoB_Pointwise(const VertexData<double>& valuesOnA);
   VertexData<double> transferAtoB_L2(const VertexData<double>& valuesOnA);
+  FaceData<double> transferAtoB_L2(const FaceData<double>& valuesOnA);
 
   VertexData<double> transferBtoA_Pointwise(const VertexData<double>& valuesOnB);
   VertexData<double> transferBtoA_L2(const VertexData<double>& valuesOnB);
@@ -58,6 +62,7 @@ VertexData<double> transferAtoB(CommonSubdivision& cs, VertexPositionGeometry& g
                                 const VertexData<double>& valuesOnA, TransferMethod method);
 VertexData<double> transferAtoB(IntrinsicTriangulation& intTri, const VertexData<double>& valuesOnA,
                                 TransferMethod method);
+FaceData<double> transferAtoB_L2(IntrinsicTriangulation& intTri, const FaceData<double>& valuesOnA);
 
 VertexData<double> transferBtoA(CommonSubdivision& cs, VertexPositionGeometry& geomA,
                                 const VertexData<double>& valuesOnB, TransferMethod method);

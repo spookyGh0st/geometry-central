@@ -181,6 +181,55 @@ SparseMatrix<double> CommonSubdivision::interpolationMatrixB() {
   return P_B;
 }
 
+SparseMatrix<double> CommonSubdivision::interpolationFaceMatrixA() {
+  std::vector<Eigen::Triplet<double>> tripletList;
+  tripletList.reserve(mesh->nFaces());
+
+  auto Aidx = meshA.getFaceIndices();
+  auto Midx = mesh->getFaceIndices();
+  for (Face f: mesh->faces()) {
+    int i = Midx[f], j = Aidx[sourceFaceA[f]];
+    tripletList.emplace_back(i,j,1.);
+  }
+
+  SparseMatrix<double> P_A (mesh->nFaces(),meshA.nFaces());
+  P_A.setFromTriplets(tripletList.begin(),tripletList.end());
+  return P_A;
+}
+
+SparseMatrix<double> CommonSubdivision::interpolationFaceMatrixB() {
+  std::vector<Eigen::Triplet<double>> tripletList;
+  tripletList.reserve(mesh->nFaces());
+
+  FaceData<size_t> Bidx = meshB.getFaceIndices(), Midx = mesh->getFaceIndices();
+  for (Face f: mesh->faces()) {
+    int i = Midx[f], j = Bidx[sourceFaceB[f]];
+    tripletList.emplace_back(i,j,1.);
+  }
+
+  SparseMatrix<double> P_B (mesh->nFaces(),meshB.nFaces());
+  P_B.setFromTriplets(tripletList.begin(),tripletList.end());
+  return P_B;
+}
+
+SparseMatrix<double> CommonSubdivision::faceAreaMatrixFromLengthsB(const EdgeData<double>& lengthB) {
+  checkMeshConstructed();
+  EdgeData<double> meshEL = interpolateEdgeLengthsB(lengthB);
+  EdgeLengthGeometry geom(*mesh,meshEL);
+  std::vector<Eigen::Triplet<double>> tripletList;
+  tripletList.reserve(mesh->nFaces());
+  auto Midx = mesh->getFaceIndices();
+  geom.requireFaceAreas();
+  for (Face f: mesh->faces()) {
+    int i = Midx[f]; double v = geom.faceAreas[f];
+    tripletList.emplace_back(i,i,v);
+  }
+  SparseMatrix<double> M (mesh->nFaces(),mesh->nFaces());
+  M.setFromTriplets(tripletList.begin(),tripletList.end());
+  return M;
+}
+
+
 EdgeData<double> CommonSubdivision::interpolateEdgeLengthsA(const EdgeData<double>& lengthA) {
   checkMeshConstructed();
 

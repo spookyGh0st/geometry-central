@@ -138,6 +138,11 @@ public:
   SparseMatrix<double> interpolationMatrixA();
   SparseMatrix<double> interpolationMatrixB(); // And respectively for B.
 
+  SparseMatrix<double> interpolationFaceMatrixA();
+  SparseMatrix<double> interpolationFaceMatrixB();
+
+  SparseMatrix<double> faceAreaMatrixFromLengthsB(const EdgeData<double>& lengthA);
+
   // Use edge lengths on either of the source triangulations to get edge lengths
   // for the common subdivision.
   // Note that in the standard case of an intrinsic triangulation with Euclidean metric-preserving edge flips, calling
