@@ -20,7 +20,7 @@ class AttributeTransfer {
 
 public:
   // Constructor
-  AttributeTransfer(CommonSubdivision& cs, VertexPositionGeometry& geomA);
+  AttributeTransfer(CommonSubdivision& cs, IntrinsicGeometryInterface& geomA);
   AttributeTransfer(IntrinsicTriangulation& intTri);
 
   // Members
