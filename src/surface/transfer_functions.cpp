@@ -3,7 +3,7 @@
 namespace geometrycentral {
 namespace surface {
 
-AttributeTransfer::AttributeTransfer(CommonSubdivision& cs_, VertexPositionGeometry& geomA) : cs(cs_) {
+AttributeTransfer::AttributeTransfer(CommonSubdivision& cs_, IntrinsicGeometryInterface& geomA) : cs(cs_) {
   // Make sure the common subdivision has full mesh connectivity
   // (this is lazy and expensive; we could actually get away without it)
   if (!cs.mesh) cs.constructMesh();
@@ -113,6 +113,16 @@ std::pair<SparseMatrix<double>, SparseMatrix<double>> AttributeTransfer::constru
   return {lhs, rhs};
 }
 
+FaceData<double> AttributeTransfer::transferAtoB_L2(const FaceData<double>& valuesOnA) {
+  if (!AtoB_L2_Solver_F) {
+    SparseMatrix<double> mat = PF_B.transpose() * M_CS_Lumped * PF_B;
+    AtoB_L2_Solver_F = std::make_unique<SquareSolver<double>>(mat);
+  }
+  Vector<double> vec = PF_B.transpose() * M_CS_Lumped * PF_A * valuesOnA.toVector();
+  Vector<double> result = AtoB_L2_Solver_F->solve(vec);
+  return FaceData<double>(cs.meshB, result);
+}
+
 std::pair<SparseMatrix<double>, SparseMatrix<double>> AttributeTransfer::constructBtoAMatrices() const {
   SparseMatrix<double> lhs = P_A.transpose() * M_CS_Galerkin * P_A;
   SparseMatrix<double> rhs = P_A.transpose() * M_CS_Galerkin * P_B;
@@ -141,6 +151,12 @@ VertexData<double> transferBtoA(IntrinsicTriangulation& intTri, const VertexData
                                 TransferMethod method) {
   AttributeTransfer transfer(intTri);
   return transfer.transferBtoA(valuesOnB, method);
+}
+
+FaceData<double> transferAtoB_L2(IntrinsicTriangulation& intTri, const FaceData<double>& valuesOnA) {
+  AttributeTransfer transfer(intTri);
+  return transfer.transferAtoB_L2(valuesOnA);
+
 }
 
 } // namespace surface
