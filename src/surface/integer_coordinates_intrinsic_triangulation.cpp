@@ -1570,14 +1570,35 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::splitInteriorEdge(Halfedge he
   }
 }
 
-Face IntegerCoordinatesIntrinsicTriangulation::joinEdge(Vertex v) {
-  if (v.isBoundary()) {
-    if (v.degree() != 2) throw std::runtime_error(
-        "Boundary Vertex must have degree 2, has degree " + std::to_string(v.degree()));
-  } else if (v.degree() != 4) {
-    throw std::runtime_error("Interior Vertex must have degree 4, has degree " + std::to_string(v.degree()));
-  }
-  return Face();
+Face IntegerCoordinatesIntrinsicTriangulation::joinEdge(Halfedge he) {
+  // TODO: checks and balances
+  Halfedge phe = he.prevOrbitFace().twin().prevOrbitFace();
+  Vertex vi = phe.tailVertex(); Vertex vj = phe.tipVertex();
+
+  double l = edgeLengths[he.edge()] + edgeLengths[phe.edge()];
+
+  int n_ip = normalCoordinates.edgeCoords[phe.edge()];
+  int n_pj = normalCoordinates.edgeCoords[he.edge()];
+  // TODO: is this logic correct?
+  int mergedCoord =  (n_ip == -1 || n_pj == -1)? -1: n_ip + n_pj;
+
+
+  Vertex v = intrinsicMesh->collapseEdgeTriangular(he);
+  GC_SAFETY_ASSERT(v != Vertex(), "FAILED (TODO: return vertex instead?");
+  GC_SAFETY_ASSERT(!phe.isDead(), "AY, this should not happen");
+  GC_SAFETY_ASSERT(!vi.isDead(), "AY, this should not happen");
+  GC_SAFETY_ASSERT(!vj.isDead(), "AY, this should not happen");
+
+  // TODO: Update normalCoordinates.edgeCoords;
+  Edge e = phe.edge();
+  normalCoordinates.edgeCoords[e] = mergedCoord;
+  edgeLengths[e] = l;
+
+  // TODO: is this correct?
+  normalCoordinates.setRoundaboutFromPrevRoundabout(phe); // phe goes vi→vj
+  normalCoordinates.setRoundaboutFromPrevRoundabout(phe.twin());
+
+  triangulationChanged();
 }
 
 Face IntegerCoordinatesIntrinsicTriangulation::removeInsertedVertex(Vertex v) {
