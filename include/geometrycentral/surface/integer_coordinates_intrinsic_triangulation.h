@@ -76,6 +76,7 @@ public:
   Vertex splitFace(Face f, Vector3 bary, bool verbose = false);
   Vertex splitEdge(Edge e, double bary, bool verbose = false);
   Halfedge splitInteriorEdge(Halfedge he, double bary, bool verbose = false);
+  Face joinEdge(Vertex v);
   Halfedge splitBoundaryEdge(Halfedge he, double bary, bool verbose = false);
 
   // Move a vertex `v` in direction `vec`, represented as a vector in the

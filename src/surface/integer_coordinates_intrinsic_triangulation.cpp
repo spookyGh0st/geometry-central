@@ -1570,6 +1570,16 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::splitInteriorEdge(Halfedge he
   }
 }
 
+Face IntegerCoordinatesIntrinsicTriangulation::joinEdge(Vertex v) {
+  if (v.isBoundary()) {
+    if (v.degree() != 2) throw std::runtime_error(
+        "Boundary Vertex must have degree 2, has degree " + std::to_string(v.degree()));
+  } else if (v.degree() != 4) {
+    throw std::runtime_error("Interior Vertex must have degree 4, has degree " + std::to_string(v.degree()));
+  }
+  return Face();
+}
+
 Face IntegerCoordinatesIntrinsicTriangulation::removeInsertedVertex(Vertex v) {
   // Stolen from geometrycentral/signpost_intrinsic_triangulation.cpp
   // Strategy: flip edges until the vertex has degree three, then remove by
