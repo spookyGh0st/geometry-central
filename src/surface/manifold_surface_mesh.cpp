@@ -1037,7 +1037,7 @@ Vertex ManifoldSurfaceMesh::insertVertex(Face fIn) {
 }
 
 
-Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
+Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Halfedge he) {
   /*  must maintain these
       std::vector<size_t> heNextArr;    // he.next(), forms a circular singly-linked list in each face
       std::vector<size_t> heVertexArr;  // he.vertex()
@@ -1045,6 +1045,8 @@ Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
       std::vector<size_t> vHalfedgeArr; // v.halfedge()
       std::vector<size_t> fHalfedgeArr; // f.halfedge()
   */
+  // TODO: Fix Halfedge/ edge logic, i just wanted something quick to work.
+  Edge e = he.edge();
 
   // check triangular
   GC_SAFETY_ASSERT(e.halfedge().face().isTriangle(), "neighborhood must be triangular");
@@ -1053,7 +1055,7 @@ Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
   // assuming on triangle mesh
   if (e.isBoundary()) {
     // Gather some values
-    Halfedge heA0 = e.halfedge();
+    Halfedge heA0 = he;
     if (heA0.vertex().degree() == 2) {
       heA0 = heA0.next().next();
       e = heA0.edge();
@@ -1128,12 +1130,9 @@ Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
   }
 
   else {
-    Halfedge heA0 = e.halfedge();
-    if (heA0.vertex().isBoundary() && heA0.twin().vertex().isBoundary()) {
-      return Vertex();
-    }
+    Halfedge heA0 = he;
     if (heA0.vertex().isBoundary()) {
-      heA0 = heA0.twin();
+      return Vertex();
     }
 
     // check if edge is part of a 'pinch' triangle
@@ -1265,6 +1264,22 @@ Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
   }
 
   modificationTick++;
+}
+Vertex ManifoldSurfaceMesh::collapseEdgeTriangular(Edge e) {
+  if (e.isBoundary()){
+    // TODO: checks and balances
+    Halfedge he = e.halfedge();
+    return collapseEdgeTriangular(he);
+  }else {
+    Halfedge he = e.halfedge();
+    if (he.vertex().isBoundary() && he.twin().vertex().isBoundary()) {
+      return Vertex();
+    }
+    if (he.vertex().isBoundary()) {
+      he = he.twin();
+    }
+    collapseEdgeTriangular(he);
+  }
 }
 
 Face ManifoldSurfaceMesh::removeEdge(Edge e) {
