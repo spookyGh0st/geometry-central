@@ -220,6 +220,8 @@ inline Halfedge::Halfedge(SurfaceMesh* mesh_, size_t ind_) : Element(mesh_,ind_)
 inline Halfedge Halfedge::twin() const                  { return Halfedge(mesh, mesh->heSibling(ind)); }
 inline Halfedge Halfedge::sibling() const               { return Halfedge(mesh, mesh->heSibling(ind)); }
 inline Halfedge Halfedge::next() const                  { return Halfedge(mesh, mesh->heNext(ind)); }
+inline Halfedge Halfedge::nextLeft() const              { assert(isInterior()); return next().next().twin(); }
+inline Halfedge Halfedge::nextRight() const             { assert(isInterior()); return next().twin(); }
 inline Vertex Halfedge::vertex() const                  { return Vertex(mesh, mesh->heVertex(ind)); }
 inline Vertex Halfedge::tipVertex() const               { return next().vertex(); }
 inline Vertex Halfedge::tailVertex() const              { return vertex(); }

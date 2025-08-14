@@ -127,6 +127,10 @@ public:
   bool orientation() const; // True if the halfedge has the same orientation as its edge
                             // Remember that halfedge orientation means "points in direction". If two faces have the
                             // same orientation, their halfedges along a shared edge will have opposite orientations.
+  // shortcut for prefOrbitFace().next().twin()
+  Halfedge nextLeft() const;
+  // shortcut for next().next().twin()
+  Halfedge nextRight() const;
 };
 
 // using DynamicHalfedge = DynamicElement<Halfedge>;
