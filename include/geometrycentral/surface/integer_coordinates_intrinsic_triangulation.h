@@ -66,6 +66,9 @@ public:
 
   Halfedge splitEdge(Halfedge he, double tSplit) override;
 
+  // opposite of splitEdge: TODO: return he
+  Vertex collapseEdgeTriangular(Halfedge he) override;
+
   // Check if an edge can be flipped geometrically, as defined by the (relative) signed areas of the resulting
   // triangles; positive values mean flippable.
   double checkFlip(Edge e);
@@ -76,7 +79,6 @@ public:
   Vertex splitFace(Face f, Vector3 bary, bool verbose = false);
   Vertex splitEdge(Edge e, double bary, bool verbose = false);
   Halfedge splitInteriorEdge(Halfedge he, double bary, bool verbose = false);
-  Face joinEdge(Halfedge he);
   Halfedge splitBoundaryEdge(Halfedge he, double bary, bool verbose = false);
 
   // Move a vertex `v` in direction `vec`, represented as a vector in the

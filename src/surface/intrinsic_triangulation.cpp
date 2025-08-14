@@ -727,5 +727,11 @@ void IntrinsicTriangulation::invokeEdgeSplitCallbacks(Edge e, Halfedge he1, Half
   }
 }
 
+void IntrinsicTriangulation::invokeEdgeCollapseCallbacks(Halfedge he) {
+  for (auto& fn : edgeCollapseCallbackList) {
+    fn(he);
+  }
+};
+
 } // namespace surface
 } // namespace geometrycentral

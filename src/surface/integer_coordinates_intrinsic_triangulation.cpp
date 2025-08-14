@@ -1570,12 +1570,28 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::splitInteriorEdge(Halfedge he
   }
 }
 
-Face IntegerCoordinatesIntrinsicTriangulation::joinEdge(Halfedge he) {
+
+//       +----^<---+
+//       |    ||   |
+//       | phe|| he|
+//  vi - v---->v---> - vj
+//       <----^<---^
+//       |    ||   |
+//       |    ||   |
+//       +---->v---+
+Vertex IntegerCoordinatesIntrinsicTriangulation::collapseEdgeTriangular(Halfedge he) {
+
+  if (vertexLocations[he.vertex()].type == SurfacePointType::Vertex)
+    return Vertex(); // can't remove native vertex.
+
+
   // TODO: checks and balances
   Halfedge phe = he.prevOrbitFace().twin().prevOrbitFace();
-  Vertex vi = phe.tailVertex(); Vertex vj = phe.tipVertex();
+  Vertex vi = phe.tailVertex(); Vertex vj = he.tipVertex();
 
   double l = edgeLengths[he.edge()] + edgeLengths[phe.edge()];
+  int rbi = normalCoordinates.roundabouts[phe];
+  int rbj = normalCoordinates.roundabouts[phe.twin()];
 
   int n_ip = normalCoordinates.edgeCoords[phe.edge()];
   int n_pj = normalCoordinates.edgeCoords[he.edge()];
@@ -1594,11 +1610,18 @@ Face IntegerCoordinatesIntrinsicTriangulation::joinEdge(Halfedge he) {
   normalCoordinates.edgeCoords[e] = mergedCoord;
   edgeLengths[e] = l;
 
+  GC_SAFETY_ASSERT(vi == phe.vertex(), " assert old orientation is kept")
+  GC_SAFETY_ASSERT(vj == phe.tipVertex(), " assert old orientation is kept")
+
   // TODO: is this correct?
-  normalCoordinates.setRoundaboutFromPrevRoundabout(phe); // phe goes vi→vj
-  normalCoordinates.setRoundaboutFromPrevRoundabout(phe.twin());
+  normalCoordinates.roundabouts[e.halfedge()] = rbi;
+  normalCoordinates.roundabouts[e.halfedge().twin()] =  rbj;
 
   triangulationChanged();
+
+  // TODO: Implement and invoke an edge collapse callback if needed by the application.
+  invokeEdgeCollapseCallbacks(he);
+  return v;
 }
 
 Face IntegerCoordinatesIntrinsicTriangulation::removeInsertedVertex(Vertex v) {

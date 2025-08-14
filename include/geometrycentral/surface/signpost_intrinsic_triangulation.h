@@ -77,6 +77,9 @@ public:
   // Split an edge
   Halfedge splitEdge(Halfedge he, double tSplit) override;
 
+
+  Vertex collapseEdgeTriangular(Halfedge he) override { throw std::runtime_error("not implemented"); };
+
 protected:
 private:
   // ======================================================

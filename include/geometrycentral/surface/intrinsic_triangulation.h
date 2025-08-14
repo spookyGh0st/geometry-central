@@ -192,6 +192,8 @@ public:
   // Split an edge
   virtual Halfedge splitEdge(Halfedge he, double tSplit) = 0;
 
+  virtual Vertex collapseEdgeTriangular(Halfedge he) = 0;
+
 
   // ==== Misc
   // Recover t-values after tracing
@@ -214,6 +216,8 @@ public:
 
   // old edge E is split to halfedge HE1,HE2 both with he.vertex() as split vertex
   std::list<std::function<void(Edge, Halfedge, Halfedge)>> edgeSplitCallbackList;
+
+  std::list<std::function<void(Halfedge)>> edgeCollapseCallbackList;
 
 
   // ======================================================
@@ -246,6 +250,7 @@ protected:
   void invokeEdgeFlipCallbacks(Edge e);
   void invokeFaceInsertionCallbacks(Face f, Vertex v);
   void invokeEdgeSplitCallbacks(Edge e, Halfedge he1, Halfedge he2);
+  void invokeEdgeCollapseCallbacks(Halfedge he);
 };
 
 
