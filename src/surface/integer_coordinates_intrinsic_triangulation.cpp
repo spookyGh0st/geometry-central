@@ -1614,13 +1614,15 @@ Vertex IntegerCoordinatesIntrinsicTriangulation::collapseEdgeTriangular(Halfedge
   GC_SAFETY_ASSERT(vj == phe.tipVertex(), " assert old orientation is kept")
 
   // TODO: is this correct?
-  normalCoordinates.roundabouts[e.halfedge()] = rbi;
-  normalCoordinates.roundabouts[e.halfedge().twin()] =  rbj;
+  normalCoordinates.setRoundaboutFromPrevRoundabout(phe);
+  normalCoordinates.setRoundaboutFromPrevRoundabout(phe.twin());
+  // normalCoordinates.roundabouts[phe] = rbi;
+  // normalCoordinates.roundabouts[phe.twin()] =  rbj;
 
   triangulationChanged();
 
   // TODO: Implement and invoke an edge collapse callback if needed by the application.
-  invokeEdgeCollapseCallbacks(he);
+  invokeEdgeCollapseCallbacks(phe);
   return v;
 }
 
