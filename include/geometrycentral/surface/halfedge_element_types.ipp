@@ -232,6 +232,8 @@ inline Face Halfedge::face() const                      { return Face(mesh, mesh
 inline Corner Halfedge::corner() const                  { return Corner(mesh, ind); }
 inline bool Halfedge::isDead() const                    { return mesh->halfedgeIsDead(ind); }
 
+inline Corner Halfedge::oppositeCorner() const                    { return prevOrbitFace().corner(); }
+
 
 // Super-navigators
 inline Halfedge Halfedge::prevOrbitFace() const  { 

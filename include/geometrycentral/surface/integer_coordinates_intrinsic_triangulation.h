@@ -67,7 +67,7 @@ public:
   Halfedge splitEdge(Halfedge he, double tSplit) override;
 
   // opposite of splitEdge: TODO: return he
-  Vertex collapseEdgeTriangular(Halfedge he) override;
+  Halfedge collapseEdgeTriangular(Halfedge he) override;
 
   // Check if an edge can be flipped geometrically, as defined by the (relative) signed areas of the resulting
   // triangles; positive values mean flippable.

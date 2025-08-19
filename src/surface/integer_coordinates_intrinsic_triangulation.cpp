@@ -1570,7 +1570,7 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::splitInteriorEdge(Halfedge he
   }
 }
 
-
+//            vk
 //       +----^<---+
 //       |    ||   |
 //       | phe|| he|
@@ -1579,51 +1579,67 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::splitInteriorEdge(Halfedge he
 //       |    ||   |
 //       |    ||   |
 //       +---->v---+
-Vertex IntegerCoordinatesIntrinsicTriangulation::collapseEdgeTriangular(Halfedge he) {
+//            vl
+Halfedge IntegerCoordinatesIntrinsicTriangulation::collapseEdgeTriangular(Halfedge he) {
 
   if (vertexLocations[he.vertex()].type == SurfacePointType::Vertex)
-    return Vertex(); // can't remove native vertex.
+    return Halfedge(); // can't remove native vertex.
 
+  Halfedge he_pj = he;
+  Halfedge he_ip = he_pj.prevOrbitFace().twin().prevOrbitFace();
+  GC_SAFETY_ASSERT(he_ip.tipVertex() == he_pj.vertex(),"Not connected");
+  GC_SAFETY_ASSERT(he_ip.tipVertex() == he.vertex(),"Not connected");
+  Vertex vi = he_ip.tailVertex(); Vertex vj = he_pj.tipVertex();
+  Vertex vk = he.isInterior()? he.next().tipVertex(): Vertex();
+  Vertex vl = he_ip.twin().isInterior()? he_ip.twin().next().tipVertex(): Vertex();
 
-  // TODO: checks and balances
-  Halfedge phe = he.prevOrbitFace().twin().prevOrbitFace();
-  Vertex vi = phe.tailVertex(); Vertex vj = he.tipVertex();
+  double l = edgeLengths[he_ip.edge()] + edgeLengths[he_pj.edge()];
+  int rbi =  normalCoordinates.roundabouts[he_ip];
+  int rbj =  normalCoordinates.roundabouts[he_pj.twin()];
+  int rbdi = normalCoordinates.roundaboutDegrees[vi];
+  int rbdj = normalCoordinates.roundaboutDegrees[vj];
 
-  double l = edgeLengths[he.edge()] + edgeLengths[phe.edge()];
-  int rbi = normalCoordinates.roundabouts[phe];
-  int rbj = normalCoordinates.roundabouts[phe.twin()];
-
-  int n_ip = normalCoordinates.edgeCoords[phe.edge()];
-  int n_pj = normalCoordinates.edgeCoords[he.edge()];
+  int n_ip = normalCoordinates.edgeCoords[he_ip.edge()];
+  int n_pj = normalCoordinates.edgeCoords[he_pj.edge()];
   // TODO: is this logic correct?
   int mergedCoord =  (n_ip == -1 || n_pj == -1)? -1: n_ip + n_pj;
+  if (n_ip == -1) { assert(n_pj == -1); }
+  if (n_pj == -1) { assert(n_ip == -1); }
 
 
   Vertex v = intrinsicMesh->collapseEdgeTriangular(he);
   GC_SAFETY_ASSERT(v != Vertex(), "FAILED (TODO: return vertex instead?");
-  GC_SAFETY_ASSERT(!phe.isDead(), "AY, this should not happen");
+  GC_SAFETY_ASSERT(!he_ip.isDead(), "AY, this should not happen");
+  GC_SAFETY_ASSERT(he_pj.isDead(), "AY, this should not happen");
   GC_SAFETY_ASSERT(!vi.isDead(), "AY, this should not happen");
   GC_SAFETY_ASSERT(!vj.isDead(), "AY, this should not happen");
 
   // TODO: Update normalCoordinates.edgeCoords;
-  Edge e = phe.edge();
+  Edge e = he_ip.edge();
   normalCoordinates.edgeCoords[e] = mergedCoord;
   edgeLengths[e] = l;
 
-  GC_SAFETY_ASSERT(vi == phe.vertex(), " assert old orientation is kept")
-  GC_SAFETY_ASSERT(vj == phe.tipVertex(), " assert old orientation is kept")
+  GC_SAFETY_ASSERT(vi == he_ip.vertex(), " assert old orientation is kept")
+  GC_SAFETY_ASSERT(vj == he_ip.tipVertex(), " assert old orientation is kept")
 
   // TODO: is this correct?
-  normalCoordinates.setRoundaboutFromPrevRoundabout(phe);
-  normalCoordinates.setRoundaboutFromPrevRoundabout(phe.twin());
-  // normalCoordinates.roundabouts[phe] = rbi;
-  // normalCoordinates.roundabouts[phe.twin()] =  rbj;
+  // normalCoordinates.roundaboutDegrees[vi] = rbdi;
+  // normalCoordinates.roundaboutDegrees[vj] = rbdj;
+  // if ( vk  != Vertex())
+  //   normalCoordinates.roundaboutDegrees[vk] = std::max(normalCoordinates.roundaboutDegrees[vk]-1, 0);
+  // if ( vl  != Vertex())
+  //   normalCoordinates.roundaboutDegrees[vl] = std::max(normalCoordinates.roundaboutDegrees[vl]-1, 0);
+  // if (!phe.isInterior())
+  //   rbi = vertexLocations[vi].type == SurfacePointType::Vertex? vi.degree()-1 : 0;
+  // if (!phe.twin().isInterior() && vertexLocations[vi].type == SurfacePointType::Vertex)
+  //   rbj = vertexLocations[vj].type == SurfacePointType::Vertex? vj.degree()-1 : 0;
+  normalCoordinates.roundabouts[he_ip] = rbi;
+  normalCoordinates.roundabouts[he_ip.twin()] = rbj;
 
   triangulationChanged();
 
-  // TODO: Implement and invoke an edge collapse callback if needed by the application.
-  invokeEdgeCollapseCallbacks(phe);
-  return v;
+  invokeEdgeCollapseCallbacks(he_ip);
+  return he_ip;
 }
 
 Face IntegerCoordinatesIntrinsicTriangulation::removeInsertedVertex(Vertex v) {

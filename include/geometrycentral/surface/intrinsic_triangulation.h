@@ -192,7 +192,7 @@ public:
   // Split an edge
   virtual Halfedge splitEdge(Halfedge he, double tSplit) = 0;
 
-  virtual Vertex collapseEdgeTriangular(Halfedge he) = 0;
+  virtual Halfedge collapseEdgeTriangular(Halfedge he) = 0;
 
 
   // ==== Misc

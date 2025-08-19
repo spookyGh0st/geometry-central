@@ -118,6 +118,8 @@ public:
   Face face() const;
   bool isDead() const;
 
+  Corner oppositeCorner() const;
+
   // Super-navigators
   Halfedge prevOrbitFace() const;
   Halfedge prevOrbitVertex() const; // only meaningful if manifold
