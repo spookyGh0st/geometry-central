@@ -10,39 +10,37 @@ namespace geometrycentral {
 namespace surface {
 
 
-SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom,
-                        const std::vector<Vertex>& vertexPts, int p, LogMapStrategy strategy) {
+SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom, const std::vector<Vertex>& vertexPts, int p) {
   VertexData<double> dist(geom.mesh, 0.);
   for (Vertex v : vertexPts) {
     dist[v] += 1.;
   }
 
   // Forward to the general version
-  return findCenter(mesh, geom, dist, p, strategy);
+  return findCenter(mesh, geom, dist, p);
 }
 
 SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom, VectorHeatMethodSolver& solver,
-                        const std::vector<Vertex>& vertexPts, int p, LogMapStrategy strategy) {
+                        const std::vector<Vertex>& vertexPts, int p) {
   VertexData<double> dist(geom.mesh, 0.);
   for (Vertex v : vertexPts) {
     dist[v] += 1.;
   }
 
   // Forward to the general version
-  return findCenter(mesh, geom, solver, dist, p, strategy);
+  return findCenter(mesh, geom, solver, dist, p);
 }
 
-SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom,
-                        const VertexData<double>& distribution, int p, LogMapStrategy strategy) {
+SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom, const VertexData<double>& distribution, int p) {
   VectorHeatMethodSolver solver(geom);
 
   // Forward to the general version
-  return findCenter(mesh, geom, solver, distribution, p, strategy);
+  return findCenter(mesh, geom, solver, distribution, p);
 }
 
 
 SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& geom, VectorHeatMethodSolver& solver,
-                        const VertexData<double>& distribution, int p, LogMapStrategy strategy) {
+                        const VertexData<double>& distribution, int p) {
 
   if (p != 1 && p != 2) {
     throw std::logic_error("only p=1 or p=2 is supported");
@@ -89,7 +87,7 @@ SurfacePoint findCenter(ManifoldSurfaceMesh& mesh, IntrinsicGeometryInterface& g
   auto evalEnergyAndUpdate = [&](SurfacePoint aboutPoint) -> std::tuple<double, Vector2> {
     // Compute the current log map
     // Solve at the face point
-    VertexData<Vector2> logmap = solver.computeLogMap(aboutPoint, strategy);
+    VertexData<Vector2> logmap = solver.computeLogMap(aboutPoint);
 
     // Evaluate energy and update step
     double thisEnergy = 0.;

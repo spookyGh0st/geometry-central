@@ -36,7 +36,7 @@ inline std::string pretty_time(long long microsec) {
     microsec -= hours * HOUR;
     long long minutes = microsec / MINUTE;
 
-    snprintf(buffer, sizeof(buffer), "%lld hr, %lld min", hours, minutes);
+    sprintf(buffer, "%lld hr, %lld min", hours, minutes);
 
     return std::string(buffer);
   }
@@ -47,7 +47,7 @@ inline std::string pretty_time(long long microsec) {
     microsec -= minutes * MINUTE;
     long long seconds = minutes / SECOND;
 
-    snprintf(buffer, sizeof(buffer), "%lld min, %lld sec", minutes, seconds);
+    sprintf(buffer, "%lld min, %lld sec", minutes, seconds);
 
     return std::string(buffer);
   }
@@ -56,7 +56,7 @@ inline std::string pretty_time(long long microsec) {
   else if (microsec > SECOND) {
     double seconds = microsec / (double)SECOND;
 
-    snprintf(buffer, sizeof(buffer), "%.2f sec", seconds);
+    sprintf(buffer, "%.2f sec", seconds);
 
     return std::string(buffer);
   }
@@ -65,7 +65,7 @@ inline std::string pretty_time(long long microsec) {
   else if (microsec > MILLIS) {
     double millis = microsec / (double)MILLIS;
 
-    snprintf(buffer, sizeof(buffer), "%.2f ms", millis);
+    sprintf(buffer, "%.2f ms", millis);
 
     return std::string(buffer);
   }
@@ -74,8 +74,9 @@ inline std::string pretty_time(long long microsec) {
   else {
     double micros = microsec;
 
-    snprintf(buffer, sizeof(buffer), "%.2f µs",
-             micros); // note the nifty unicode \mu. I apologize when this breaks something later.
+    sprintf(buffer, "%.2f µs", micros); // note the nifty unicode \mu. I
+                                        // apologize when this breaks something
+                                        // later.
 
     return std::string(buffer);
   }

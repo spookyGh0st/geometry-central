@@ -14,7 +14,6 @@ namespace geometrycentral {
 
 #ifndef SHM_H
 #define SHM_H
-// Note: Duplicated in surface/signed_heat_method
 enum class LevelSetConstraint { None = 0, ZeroSet, Multiple };
 
 struct SignedHeatOptions {
