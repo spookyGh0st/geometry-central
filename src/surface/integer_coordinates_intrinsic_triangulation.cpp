@@ -1636,6 +1636,9 @@ Halfedge IntegerCoordinatesIntrinsicTriangulation::collapseEdgeTriangular(Halfed
   normalCoordinates.roundabouts[he_ip] = rbi;
   normalCoordinates.roundabouts[he_ip.twin()] = rbj;
 
+  for(Face f: he_ip.edge().adjacentFaces()) updateFaceBasis(f);
+  // TODO: update vertexAngleSums
+
   triangulationChanged();
 
   invokeEdgeCollapseCallbacks(he_ip);
