@@ -43,9 +43,8 @@ IntrinsicGeometryInterface::IntrinsicGeometryInterface(SurfaceMesh& mesh_) :
 
   // DEC operators need some extra work since 8 members are grouped under one require
   DECOperatorArray{&hodge0, &hodge0Inverse, &hodge1, &hodge1Inverse, &hodge2, &hodge2Inverse, &d0, &d1},
-  DECOperatorsQ(&DECOperatorArray, std::bind(&IntrinsicGeometryInterface::computeDECOperators, this), quantities)
-
-
+  DECOperatorsQ(&DECOperatorArray, std::bind(&IntrinsicGeometryInterface::computeDECOperators, this), quantities),
+  D0Q(&d0,std::bind(&IntrinsicGeometryInterface::computeD0, this),      quantities)
   { }
 
 double IntrinsicGeometryInterface::trilinear_coordinate(Halfedge halfedge)
@@ -804,8 +803,36 @@ void IntrinsicGeometryInterface::computeDECOperators() {
     L1 = d0 * codiff1 + codiff2 * d1;
   }
 }
+void IntrinsicGeometryInterface::computeD0() {
+    vertexIndicesQ.ensureHave();
+    edgeIndicesQ.ensureHave();
+
+    size_t nVerts = mesh.nVertices();
+    size_t nEdges = mesh.nEdges();
+
+    d0 = Eigen::SparseMatrix<double>(nEdges, nVerts);
+    std::vector<Eigen::Triplet<double>> tripletList;
+
+    for (Edge e : mesh.edges()) {
+      size_t iEdge = edgeIndices[e];
+      Halfedge he = e.halfedge();
+      Vertex vTail = he.vertex();
+      Vertex vHead = he.next().vertex();
+
+      size_t iVHead = vertexIndices[vHead];
+      tripletList.emplace_back(iEdge, iVHead, 1.0);
+
+      size_t iVTail = vertexIndices[vTail];
+      tripletList.emplace_back(iEdge, iVTail, -1.0);
+    }
+
+    d0.setFromTriplets(tripletList.begin(), tripletList.end());
+}
+
 void IntrinsicGeometryInterface::requireDECOperators() { DECOperatorsQ.require(); }
 void IntrinsicGeometryInterface::unrequireDECOperators() { DECOperatorsQ.unrequire(); }
+void IntrinsicGeometryInterface::required0() { D0Q.require(); }
+void IntrinsicGeometryInterface::unrequired0() { D0Q.unrequire(); }
 
 } // namespace surface
 } // namespace geometrycentral

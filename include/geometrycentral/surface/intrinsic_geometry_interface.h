@@ -166,6 +166,8 @@ public:
   Eigen::SparseMatrix<double> hodge0, hodge0Inverse, hodge1, hodge1Inverse, hodge2, hodge2Inverse, d0, d1, L1;
   void requireDECOperators();
   void unrequireDECOperators();
+  void required0();
+  void unrequired0();
 
 protected:
   double trilinear_coordinate(Halfedge halfedge);
@@ -288,7 +290,9 @@ protected:
   // DependentQuantityD<> helper type to still manage and clear out these members.
   std::array<Eigen::SparseMatrix<double>*, 8> DECOperatorArray;
   DependentQuantityD<std::array<Eigen::SparseMatrix<double>*, 8>> DECOperatorsQ;
+  DependentQuantityD<Eigen::SparseMatrix<double>> D0Q;
   virtual void computeDECOperators();
+  virtual void computeD0();
 };
 
 } // namespace surface

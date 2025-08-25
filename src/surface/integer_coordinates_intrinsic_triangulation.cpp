@@ -593,6 +593,7 @@ Vertex IntegerCoordinatesIntrinsicTriangulation::insertCircumcenterOrSplitSegmen
 // Assumes vertexAngleSums exist and are up to date
 void IntegerCoordinatesIntrinsicTriangulation::updateHalfedgeVectorsInVertex(Vertex v) {
   // stolen from intrinsic_geometry_interface.cpp
+  if (halfedgeVectorsInVertex.size() == 0) return;
 
   auto cornerScaledAngle = [&](Corner c) -> double {
     if (c.vertex().isBoundary()) {

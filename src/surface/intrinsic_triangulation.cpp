@@ -46,7 +46,7 @@ IntrinsicTriangulation::IntrinsicTriangulation(ManifoldSurfaceMesh& mesh_, Intri
   edgeSplitCallbackList.push_back(updateMarkedEdges);
 
   // All subclasses must always keep these buffers updated as we perform operations.
-  requireHalfedgeVectorsInVertex();
+  // requireHalfedgeVectorsInVertex();
   requireHalfedgeVectorsInFace();
   requireVertexAngleSums();
 }
