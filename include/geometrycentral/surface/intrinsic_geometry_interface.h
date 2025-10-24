@@ -169,6 +169,10 @@ public:
   void required0();
   void unrequired0();
 
+
+  std::array<Vector2,3> halfedgeVectorInFace(Face f) const;
+  Vector2 halfedgeVector(Halfedge he) const;
+
 protected:
   double trilinear_coordinate(Halfedge halfedge);
 

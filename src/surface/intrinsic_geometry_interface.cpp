@@ -834,5 +834,65 @@ void IntrinsicGeometryInterface::unrequireDECOperators() { DECOperatorsQ.unrequi
 void IntrinsicGeometryInterface::required0() { D0Q.require(); }
 void IntrinsicGeometryInterface::unrequired0() { D0Q.unrequire(); }
 
+inline double faceArea(Face f, const EdgeData<double>& edgeLengths) {
+  // WARNING: Logic duplicated between cached and immediate version
+  Halfedge he = f.halfedge();
+  double a = edgeLengths[he.edge()];
+  he = he.next();
+  double b = edgeLengths[he.edge()];
+  he = he.next();
+  double c = edgeLengths[he.edge()];
+
+  GC_SAFETY_ASSERT(he.next() == f.halfedge(), "faces must be triangular");
+
+  // Heron's formula
+  double s = (a + b + c) / 2.0;
+  double arg = s * (s - a) * (s - b) * (s - c);
+  arg = std::fmax(0., arg);
+  double area = std::sqrt(arg);
+  return area;
+}
+
+std::array<Vector2,3> IntrinsicGeometryInterface::halfedgeVectorInFace(Face f) const {
+    // Gather some values
+    Halfedge heAB = f.halfedge();
+    Halfedge heBC = heAB.next();
+    Halfedge heCA = heBC.next();
+    GC_SAFETY_ASSERT(heCA.next() == heAB, "faces must be triangular");
+
+    double lAB = edgeLengths[heAB.edge()];
+    double lBC = edgeLengths[heBC.edge()];
+    double lCA = edgeLengths[heCA.edge()];
+
+    // Assign positions to all three vertices
+    // Vector2 pA{0., 0.}; // used implicitly
+    Vector2 pB{lAB, 0.};
+    // pC is the hard one:
+
+    double tArea = faceArea(f,edgeLengths);
+
+    // Compute width and height of right triangle formed via altitude from C
+    double h = 2. * tArea / lAB;
+    double w = std::sqrt(std::max(0., lCA * lCA - h * h));
+
+    // Take the closer of the positive and negative solutions
+    if (lBC * lBC > (lAB * lAB + lCA * lCA)) w *= -1.0;
+
+    // Project some vectors to get the actual position
+    Vector2 pC{w, h};
+
+    // Now, all halfedge vectors are just coordinates
+    return { pB, pC-pB, -pC};
+}
+
+Vector2 IntrinsicGeometryInterface::halfedgeVector(Halfedge he) const {
+  auto hes= halfedgeVectorInFace(he.face());
+  int i = 0;
+  for (Halfedge ahe: he.face().adjacentHalfedges()) {
+    if (ahe ==he ) return hes[i]; else i++;
+  }
+
+
+}
 } // namespace surface
 } // namespace geometrycentral
