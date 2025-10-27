@@ -834,7 +834,7 @@ void IntrinsicGeometryInterface::unrequireDECOperators() { DECOperatorsQ.unrequi
 void IntrinsicGeometryInterface::required0() { D0Q.require(); }
 void IntrinsicGeometryInterface::unrequired0() { D0Q.unrequire(); }
 
-inline double faceArea(Face f, const EdgeData<double>& edgeLengths) {
+double IntrinsicGeometryInterface::faceAreaFromLength(Face f) const {
   // WARNING: Logic duplicated between cached and immediate version
   Halfedge he = f.halfedge();
   double a = edgeLengths[he.edge()];
@@ -869,7 +869,7 @@ std::array<Vector2,3> IntrinsicGeometryInterface::halfedgeVectorInFace(Face f) c
     Vector2 pB{lAB, 0.};
     // pC is the hard one:
 
-    double tArea = faceArea(f,edgeLengths);
+    double tArea = faceAreaFromLength(f);
 
     // Compute width and height of right triangle formed via altitude from C
     double h = 2. * tArea / lAB;

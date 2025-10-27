@@ -170,6 +170,7 @@ public:
   void unrequired0();
 
 
+  double faceAreaFromLength(Face f) const;
   std::array<Vector2,3> halfedgeVectorInFace(Face f) const;
   Vector2 halfedgeVector(Halfedge he) const;
 
